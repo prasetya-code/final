@@ -2,6 +2,7 @@ from flask import Flask
 from flask_compress import Compress
 
 from extension.flask_cache import init_cache
+from extension.flask_limiter import limiter
 
 compress = Compress()  # inisialisasi tanpa app dulu
 
@@ -11,7 +12,12 @@ def create_app():
 
     # aktifkan compression
     compress.init_app(core)
+    
+    # cache
     init_cache(core)
+
+    # rate limiter
+    limiter.init_app(core)
 
     """ # Cegah browser cache halaman HTML (fix untuk Brave & aggressive caching)
     @core.after_request

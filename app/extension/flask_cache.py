@@ -1,12 +1,27 @@
-# cache.py
-
 from flask_caching import Cache
 import os
 
 cache = Cache()
 
+
+# =========================
+# FILESYSTEM CACHE SETUP (OPTIONAL / RUNTIME SAFE)
+# =========================
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CACHE_PATH = os.path.join(BASE_DIR, "tmp", "flask_cache")
+
+def ensure_cache_dir():
+    """
+    Membuat folder cache hanya jika FileSystemCache digunakan.
+    Tidak dijalankan saat import (lebih aman untuk production).
+    """
+    try:
+        os.makedirs(CACHE_PATH, exist_ok=True)
+        print(f"[CACHE DEBUG] Using cache dir: {CACHE_PATH}")
+
+    except Exception as e:
+        print(f"[CACHE ERROR] {e}")
+
 
 class CacheConfig:
     """ CACHE_TYPE options (Flask-Caching):
@@ -59,11 +74,10 @@ class CacheConfig:
         CACHE_TYPE = "yourmodule.yourcacheclass"
     """
 
-
     # =========================
     # BASIC
     # =========================
-    CACHE_TYPE = "SimpleCache"  
+    CACHE_TYPE = os.getenv("CACHE_TYPE", "SimpleCache")
     CACHE_DEFAULT_TIMEOUT = 300
     CACHE_THRESHOLD = 500
     CACHE_IGNORE_ERRORS = True
@@ -80,21 +94,20 @@ class CacheConfig:
     CACHE_REDIS_SOCKET_TIMEOUT = 5
     CACHE_REDIS_CONNECT_TIMEOUT = 5 """
 
+    """ # =========================
+    # OPTIONAL (FileSystemCache support (aktifkan kalau pakai ini))
     # =========================
-    # OPTIONAL
-    # =========================
-    try:
-        os.makedirs(CACHE_PATH, exist_ok=True)
-
-        print(f"[CACHE DEBUG] Using cache dir: {CACHE_PATH}")
-
-    except Exception as e:
-        print(f"[CACHE ERROR] {e}")
-
     CACHE_DIR = CACHE_PATH
-    CACHE_NO_NULL_WARNING = True
+    CACHE_NO_NULL_WARNING = True """
 
 
 def init_cache(app):
+
+    # =========================================================
+    # SAFE RUNTIME HOOK (tidak jalan saat import)
+    # =========================================================
+    if CacheConfig.CACHE_TYPE == "FileSystemCache":
+        ensure_cache_dir()
+
     app.config.from_object(CacheConfig)
     cache.init_app(app)
