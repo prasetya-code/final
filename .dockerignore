@@ -1,0 +1,14 @@
+# ENV
+win_env
+lin_env
+
+**node_modules
+
+# Cache
+**__pycache__
+
+# Private
+.env*
+
+# Log
+**logs
