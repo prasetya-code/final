@@ -1,29 +1,8 @@
 <!-- 1. Polyfill dulu untuk browser lama -->
-<!-- <script nomodule src="{{ url_for('static', filename='js/polyfills-legacy.js') }}"></script> -->
+<script nomodule src="{{ url_for('static', filename='dist/polyfills-legacy.js') }}"></script>
 
 <!-- 2. Kode transpile untuk browser lama -->
-<!-- <script nomodule src="{{ url_for('static', filename='js/main-legacy.js') }}"></script> -->
+<script nomodule src="{{ url_for('static', filename='dist/main-legacy.js') }}"></script>
 
 <!-- 3. Kode modern untuk browser baru -->
-<!-- <script type="module" src="{{ url_for('static', filename='js/main.js') }}"></script> -->
-
-<!-- 🔥 Register Service Worker -->
-<!-- <script nonce="{{ g.csp_nonce }}">
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/service-worker.js', {
-                updateViaCache: 'none' // 🔥 penting: selalu cek SW terbaru
-        })
-        .then(reg => {
-            console.log('SW registered:', reg.scope);
-            
-            // 🔥 paksa cek update setiap load
-            reg.update();
-        })
-        .catch(err => console.error('SW failed:', err));
-    });
-}
-</script> -->
-
-<!-- CDN -->
-{% include 'base/cdn.html' %}
+<script type="module" src="{{ url_for('static', filename='dist/main.js') }}"></script>

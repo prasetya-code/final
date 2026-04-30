@@ -55,4 +55,6 @@ def index():
     return "home"
 ```
 
-# s
+# NOTE
+
+> CDN sebaiknya di tidak di letakkan di base.html karena dia akan ikut ke load dan menambah beban load, kecuali memang butuh

@@ -1,0 +1,49 @@
+{% extends 'base/base.html' %}
+
+{% block content %}
+<div class="rate-limit-page">
+
+    <!-- Background -->
+    <div class="rate-limit-background">
+        <div class="rate-limit-blob rate-limit-blob-1"></div>
+        <div class="rate-limit-blob rate-limit-blob-2"></div>
+        <div class="rate-limit-blob rate-limit-blob-3"></div>
+        <div class="rate-limit-grid-pattern"></div>
+    </div>
+
+    <!-- Content -->
+    <div class="rate-limit-content">
+
+        <!-- Error Code -->
+        <h1 class="rate-limit-error-code">429</h1>
+
+        <!-- Title -->
+        <h2 class="rate-limit-title">Too Many Requests</h2>
+
+        <!-- Info Box -->
+        <div class="rate-limit-info-box">
+            <div class="rate-limit-info-text">
+                <div class="rate-limit-line">
+                    <span class="rate-limit-symbol">&gt;</span> RATE LIMIT EXCEEDED
+                </div>
+                <div class="rate-limit-line">
+                    <span class="rate-limit-symbol-error">&gt;</span> Terlalu banyak akses dalam interval waktu tertentu
+                </div>
+            </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="rate-limit-actions">
+            <button onclick="window.location.reload()" class="rate-limit-btn rate-limit-btn-warning">
+                Coba Lagi
+            </button>
+
+            <a href="/" class="rate-limit-btn rate-limit-btn-outline">
+                Home
+            </a>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

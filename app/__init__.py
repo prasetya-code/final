@@ -1,35 +1,28 @@
 from flask import Flask
-
+import traceback
 
 def create_app():
     # initialize core
+    # ===================
     core = Flask(__name__, static_folder='static', template_folder='templates')
 
-    
+    try: 
+        # register extension
+        # ===================
+        from app.extension import register_extension
+        register_extension(core)
 
-    # register extension
-    from app.extension import register_extension
-    register_extension(core)
+        # register routes
+        # ===================
+        from app.routes import register_routes
+        register_routes(core)
 
-    """ # register config
-    from config import register_config
-    register_config(core)
 
-    # register middleware
-    from app.middleware import register_middleware
-    register_middleware(core) """
+    except Exception as e:
+        print("\nFAILURE")
+        print("ERROR:", e)
 
-    # register routes
-    from app.routes import register_routes
-    register_routes(core)
+        traceback.print_exc() 
 
-    """ # Cegah browser cache halaman HTML (fix untuk Brave & aggressive caching)
-    @core.after_request
-    def set_no_cache(response):
-        if "text/html" in response.content_type:
-            response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
-            response.headers["Pragma"]        = "no-cache"
-            response.headers["Expires"]       = "0"
-        return response """
 
     return core

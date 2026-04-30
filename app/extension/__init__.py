@@ -2,25 +2,17 @@ import traceback
 
 def register_extension(app):
     try:
-        from flask_compress import Compress
-        
-        from app.extension.flask_cache import init_cache
-        from app.extension.flask_limiter import init_limiter
+        from .flask_compresing import init_compress
+        from .flask_cache import init_cache
+        from .flask_limit import init_limiter
 
-        compress = Compress()  # inisialisasi tanpa app dulu
+        init_compress(app)  # compression
+        init_cache(app)     # cache
+        init_limiter(app)   # rate limiter
 
-        # aktifkan compression
-        compress.init_app(app)
-        
-        # cache
-        init_cache(app)
-
-        # rate limiter
-        init_limiter(app)
-
-        print("extension sudah di inisialisasi di create_app()")
 
     except Exception as e:
-        print("extension gagal di inisialisasi di create_app()")
+        print("\nEXTENSION gagal di regis dan inisialisasi di create_app()")
         print("ERROR:", e)
+
         traceback.print_exc()
