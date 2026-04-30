@@ -1,0 +1,14 @@
+/* Import tailwindcss via VITE */
+@import "tailwindcss";
+
+/* Scan CSS element in all file */
+@source "../app/templates/**/*.html";
+@source "./src/**/*.js";
+
+/* Add new css pluggin */
+@plugin "daisyui" {
+  themes: all;
+}
+
+/* Custom Dark Mode */
+@custom-variant dark (&:where(.dark, .dark *));
