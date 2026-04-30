@@ -11,7 +11,7 @@ main_bp = Blueprint('main', __name__)
 # APP ROUTES
 # =========================
 
-@main_bp.route("/", methods=["POST"])
+@main_bp.route("/", methods=["GET"])
 @limiter.limit("5 per minute")
 @cache.cached(timeout=60, response_filter=lambda r: getattr(r, "status_code", 200) == 200)
 def index():

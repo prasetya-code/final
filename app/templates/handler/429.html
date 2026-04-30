@@ -1,49 +1,84 @@
 {% extends 'base/base.html' %}
 
 {% block content %}
-<div class="rate-limit-page">
+<div class="min-h-screen flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-slate-950 via-orange-950 to-slate-900 px-4">
 
-    <!-- Background -->
-    <div class="rate-limit-background">
-        <div class="rate-limit-blob rate-limit-blob-1"></div>
-        <div class="rate-limit-blob rate-limit-blob-2"></div>
-        <div class="rate-limit-blob rate-limit-blob-3"></div>
-        <div class="rate-limit-grid-pattern"></div>
-    </div>
+    <!-- Blobs -->
+    <div class="e429-blob e429-b1"></div>
+    <div class="e429-blob e429-b2"></div>
+    <div class="e429-blob e429-b3"></div>
+
+    <!-- Grid overlay -->
+    <div class="e429-grid absolute inset-0 pointer-events-none"></div>
 
     <!-- Content -->
-    <div class="rate-limit-content">
+    <div class="relative z-10 text-center max-w-2xl w-full e429-fade-up">
+
+        <!-- Badge -->
+        <div class="inline-flex items-center gap-2 bg-amber-500/15 border border-amber-500/35 rounded-full px-4 py-1.5 mb-10">
+            <span class="size-2 rounded-full bg-orange-500 animate-pulse"></span>
+            <span class="font-mono text-[11px] tracking-widest text-amber-300 uppercase">HTTP Error</span>
+        </div>
 
         <!-- Error Code -->
-        <h1 class="rate-limit-error-code">429</h1>
+        <h1 class="font-black leading-none bg-gradient-to-br from-amber-400 via-orange-400 to-rose-400 bg-clip-text text-transparent mb-4 e429-pulse"
+            style="font-size: clamp(7rem, 20vw, 11rem); letter-spacing: -4px;">
+            429
+        </h1>
 
         <!-- Title -->
-        <h2 class="rate-limit-title">Too Many Requests</h2>
+        <h2 class="text-3xl md:text-4xl font-bold text-slate-100 mb-8 tracking-tight">
+            Too Many Requests
+        </h2>
 
-        <!-- Info Box -->
-        <div class="rate-limit-info-box">
-            <div class="rate-limit-info-text">
-                <div class="rate-limit-line">
-                    <span class="rate-limit-symbol">&gt;</span> RATE LIMIT EXCEEDED
+        <!-- Terminal Box -->
+        <div class="bg-slate-950/60 border border-amber-500/25 rounded-2xl p-5 mb-8 backdrop-blur-sm text-left e429-pulse-border">
+
+            <!-- Terminal header -->
+            <div class="flex items-center gap-2 mb-4 pb-3 border-b border-amber-500/20">
+                <span class="font-mono text-[10px] text-amber-400 bg-amber-500/15 px-2.5 py-0.5 rounded">TERMINAL</span>
+                <div class="flex gap-1.5 ml-auto">
+                    <span class="size-2.5 rounded-full bg-rose-400"></span>
+                    <span class="size-2.5 rounded-full bg-amber-400"></span>
+                    <span class="size-2.5 rounded-full bg-emerald-400"></span>
                 </div>
-                <div class="rate-limit-line">
-                    <span class="rate-limit-symbol-error">&gt;</span> Terlalu banyak akses dalam interval waktu tertentu
-                </div>
+            </div>
+
+            <!-- Terminal lines -->
+            <div class="font-mono text-sm leading-loose">
+                <p>
+                    <span class="text-amber-400">&gt;&gt;</span>
+                    <span class="text-slate-200"> RATE LIMIT </span>
+                    <span class="text-orange-400">EXCEEDED</span>
+                </p>
+                <p>
+                    <span class="text-rose-400">&gt;&gt;</span>
+                    <span class="text-slate-400"> Terlalu banyak akses dalam interval waktu tertentu</span>
+                </p>
+                <p>
+                    <span class="text-amber-400">&gt;&gt;</span>
+                    <span class="text-slate-400"> Tunggu beberapa saat sebelum mencoba kembali</span>
+                </p>
             </div>
         </div>
 
         <!-- Buttons -->
-        <div class="rate-limit-actions">
-            <button onclick="window.location.reload()" class="rate-limit-btn rate-limit-btn-warning">
+        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+            <button
+                onclick="window.location.reload()"
+                class="inline-flex items-center justify-center px-7 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-slate-900 font-semibold shadow-lg shadow-amber-500/30 hover:shadow-amber-500/50 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer border-0"
+            >
                 Coba Lagi
             </button>
 
-            <a href="/" class="rate-limit-btn rate-limit-btn-outline">
+            
+                href="/"
+                class="inline-flex items-center justify-center px-7 py-3 rounded-xl bg-amber-500/10 border border-amber-500/35 text-amber-200 font-semibold hover:bg-amber-500/20 hover:-translate-y-0.5 transition-all duration-200"
+            >
                 Home
             </a>
         </div>
 
     </div>
-
 </div>
 {% endblock %}

@@ -1,72 +1,64 @@
-/* ANIMATION */
-@keyframes not-method-blob {
-    0%, 100% {
-        transform: translate(0, 0) scale(1);
-    }
-    33% {
-        transform: translate(30px, -50px) scale(1.1);
-    }
-    66% {
-        transform: translate(-20px, 20px) scale(0.9);
-    }
+@keyframes e405-blob {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33%       { transform: translate(30px, -50px) scale(1.1); }
+    66%       { transform: translate(-20px, 20px) scale(0.9); }
 }
 
-@keyframes not-method-fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+@keyframes e405-fade-up {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
-/* FADE */
-.not-method-fade-in {
-    animation: not-method-fadeIn 0.8s ease-out;
+@keyframes e405-flicker {
+    0%, 100% { border-color: rgba(99, 102, 241, .25); }
+    50%      { border-color: rgba(236, 72, 153, .3); }
 }
 
-/* BLOBS */
-.not-method-blob {
+.e405-blob {
     position: absolute;
     border-radius: 9999px;
-    filter: blur(80px); /* penting: ini yang bikin glow sama */
+    filter: blur(80px);
     opacity: 0.2;
-    mix-blend-mode: multiply;
-    animation: not-method-blob 7s infinite;
+    animation: e405-blob 8s infinite;
 }
 
-.not-method-blob-1 {
-    top: -160px;
-    right: -160px;
-    width: 320px;
-    height: 320px;
-    background: linear-gradient(to bottom right, #6366f1, #ec4899);
+.e405-b1 {
+    top: -120px;
+    right: -80px;
+    width: 340px;
+    height: 340px;
+    background: linear-gradient(135deg, #6366f1, #ec4899);
 }
 
-.not-method-blob-2 {
-    bottom: -32px;
-    left: 80px;
-    width: 288px;
-    height: 288px;
-    background: linear-gradient(to bottom right, #14b8a6, #6366f1);
-    animation-delay: 2s;
+.e405-b2 {
+    bottom: -40px;
+    left: 60px;
+    width: 300px;
+    height: 300px;
+    background: linear-gradient(135deg, #14b8a6, #6366f1);
+    animation-delay: 2.5s;
 }
 
-.not-method-blob-3 {
-    bottom: 0;
-    right: 25%;
-    width: 288px;
-    height: 288px;
-    background: linear-gradient(to bottom right, #ec4899, #14b8a6);
-    animation-delay: 4s;
+.e405-b3 {
+    bottom: 20px;
+    right: 22%;
+    width: 280px;
+    height: 280px;
+    background: linear-gradient(135deg, #ec4899, #14b8a6);
+    animation-delay: 5s;
 }
 
-/* GRID */
-.not-method-grid-pattern {
+.e405-grid {
     background-image:
-        linear-gradient(0deg, transparent 24%, rgba(99, 102, 241, 0.05) 25%, rgba(99, 102, 241, 0.05) 26%, transparent 27%, transparent 74%, rgba(99, 102, 241, 0.05) 75%, rgba(99, 102, 241, 0.05) 76%, transparent 77%, transparent),
-        linear-gradient(90deg, transparent 24%, rgba(99, 102, 241, 0.05) 25%, rgba(99, 102, 241, 0.05) 26%, transparent 27%, transparent 74%, rgba(99, 102, 241, 0.05) 75%, rgba(99, 102, 241, 0.05) 76%, transparent 77%, transparent);
+        linear-gradient(0deg, transparent 24%, rgba(99, 102, 241, .04) 25%, rgba(99, 102, 241, .04) 26%, transparent 27%, transparent 74%, rgba(99, 102, 241, .04) 75%, rgba(99, 102, 241, .04) 76%, transparent 77%),
+        linear-gradient(90deg, transparent 24%, rgba(99, 102, 241, .04) 25%, rgba(99, 102, 241, .04) 26%, transparent 27%, transparent 74%, rgba(99, 102, 241, .04) 75%, rgba(99, 102, 241, .04) 76%, transparent 77%);
     background-size: 50px 50px;
+}
+
+.e405-fade-up {
+    animation: e405-fade-up .9s cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.e405-pulse-border {
+    animation: e405-flicker 3s ease-in-out infinite;
 }

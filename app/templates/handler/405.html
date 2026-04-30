@@ -1,61 +1,83 @@
 {% extends 'base/base.html' %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900">
+<div class="min-h-screen flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 px-4">
 
-    <!-- Background -->
-    <div class="absolute inset-0 overflow-hidden pointer-events-none">
-        <div class="not-method-blob not-method-blob-1"></div>
-        <div class="not-method-blob not-method-blob-2"></div>
-        <div class="not-method-blob not-method-blob-3"></div>
-        <div class="not-method-grid-pattern absolute inset-0 opacity-10"></div>
-    </div>
+    <!-- Blobs -->
+    <div class="e405-blob e405-b1"></div>
+    <div class="e405-blob e405-b2"></div>
+    <div class="e405-blob e405-b3"></div>
+
+    <!-- Grid overlay -->
+    <div class="e405-grid absolute inset-0 pointer-events-none"></div>
 
     <!-- Content -->
-    <div class="relative z-10 text-center px-4 md:px-8 max-w-2xl mx-auto not-method-fade-in">
+    <div class="relative z-10 text-center max-w-2xl w-full e405-fade-up">
+
+        <!-- Badge -->
+        <div class="inline-flex items-center gap-2 bg-indigo-500/15 border border-indigo-500/35 rounded-full px-4 py-1.5 mb-10">
+            <span class="size-2 rounded-full bg-rose-500 animate-pulse"></span>
+            <span class="font-mono text-[11px] tracking-widest text-indigo-300 uppercase">HTTP Error</span>
+        </div>
 
         <!-- Error Code -->
-        <h1 class="text-9xl md:text-[10rem] font-black bg-gradient-to-r from-indigo-400 via-pink-400 to-teal-400 bg-clip-text text-transparent drop-shadow-lg mb-6">
+        <h1 class="font-black leading-none bg-gradient-to-br from-indigo-400 via-pink-400 to-teal-400 bg-clip-text text-transparent mb-4"
+            style="font-size: clamp(7rem, 20vw, 11rem); letter-spacing: -4px;">
             405
         </h1>
 
         <!-- Title -->
-        <h2 class="text-4xl md:text-5xl font-bold text-slate-100 mb-4">
+        <h2 class="text-3xl md:text-4xl font-bold text-slate-100 mb-8 tracking-tight">
             Method Not Allowed
         </h2>
 
-        <!-- Info Box -->
-        <div class="bg-slate-800/50 border border-indigo-500/30 rounded-lg p-6 mb-8 backdrop-blur-sm shadow-xl transition-all duration-300 hover:border-pink-500/30">
-            <div class="font-mono text-sm text-slate-300 space-y-2 text-left">
-                <div class="text-indigo-400">
-                    <span class="text-pink-400">&gt;</span> HTTP Method tidak sesuai
+        <!-- Terminal Box -->
+        <div class="bg-slate-950/60 border border-indigo-500/25 rounded-2xl p-5 mb-8 backdrop-blur-sm text-left e405-pulse-border">
+
+            <!-- Terminal header -->
+            <div class="flex items-center gap-2 mb-4 pb-3 border-b border-indigo-500/20">
+                <span class="font-mono text-[10px] text-indigo-400 bg-indigo-500/15 px-2.5 py-0.5 rounded">TERMINAL</span>
+                <div class="flex gap-1.5 ml-auto">
+                    <span class="size-2.5 rounded-full bg-rose-400"></span>
+                    <span class="size-2.5 rounded-full bg-amber-400"></span>
+                    <span class="size-2.5 rounded-full bg-emerald-400"></span>
                 </div>
-                <div class="text-indigo-400">
-                    <span class="text-teal-400">&gt;</span> Check your request method (GET, POST, PUT, DELETE)
-                </div>
-                <div class="text-indigo-400">
-                    <span class="text-pink-400">&gt;</span> Kembali ke jalur yang benar untuk hasil optimal
-                </div>
+            </div>
+
+            <!-- Terminal lines -->
+            <div class="font-mono text-sm leading-loose">
+                <p>
+                    <span class="text-pink-400">&gt;&gt;</span>
+                    <span class="text-slate-200"> HTTP method </span>
+                    <span class="text-amber-400">tidak sesuai</span>
+                </p>
+                <p>
+                    <span class="text-teal-400">&gt;&gt;</span>
+                    <span class="text-slate-200"> Allowed: </span>
+                    <span class="text-indigo-300">GET · POST · PUT · DELETE</span>
+                </p>
+                <p>
+                    <span class="text-pink-400">&gt;&gt;</span>
+                    <span class="text-slate-400"> Pastikan request method kamu sudah benar</span>
+                </p>
             </div>
         </div>
 
         <!-- Buttons -->
-        <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
-    
-            <button 
-                onclick="window.history.back()" 
-                class="btn btn-primary btn-lg shadow-lg hover:shadow-xl hover:shadow-indigo-500/50 transition-all duration-300"
+        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+            <button
+                onclick="window.history.back()"
+                class="inline-flex items-center justify-center px-7 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-semibold shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer border-0"
             >
                 Kembali
             </button>
 
-            <a 
-                href="/" 
-                class="btn btn-outline btn-lg text-indigo-100 border-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 hover:border-indigo-200 transition-all duration-300"
+            <a
+                href="/"
+                class="inline-flex items-center justify-center px-7 py-3 rounded-xl bg-indigo-500/10 border border-indigo-500/35 text-indigo-200 font-semibold hover:bg-indigo-500/20 hover:-translate-y-0.5 transition-all duration-200"
             >
                 Home
             </a>
-
         </div>
 
     </div>

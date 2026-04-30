@@ -1,190 +1,73 @@
-/* =========================
-   Layout
-========================= */
-.rate-limit-page {
-    min-height: 100vh;
-    background: linear-gradient(to bottom right, #020617, #451a03, #020617);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    overflow: hidden;
+@keyframes e429-blob {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33%       { transform: translate(30px, -50px) scale(1.1); }
+    66%       { transform: translate(-20px, 20px) scale(0.9); }
 }
 
-/* =========================
-   Background
-========================= */
-.rate-limit-background {
-    position: absolute;
-    inset: 0;
-    overflow: hidden;
-    pointer-events: none;
+@keyframes e429-fade-up {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
-.rate-limit-blob {
+@keyframes e429-flicker {
+    0%, 100% { border-color: rgba(245, 158, 11, .25); }
+    50%      { border-color: rgba(249, 115, 22, .35); }
+}
+
+@keyframes e429-pulse {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.65; }
+}
+
+.e429-blob {
     position: absolute;
     border-radius: 9999px;
-    filter: blur(60px);
+    filter: blur(80px);
     opacity: 0.2;
-    animation: rate-limit-blob 7s infinite;
+    animation: e429-blob 8s infinite;
 }
 
-.rate-limit-blob-1 {
-    top: -10rem;
-    right: -10rem;
-    width: 20rem;
-    height: 20rem;
-    background: linear-gradient(to bottom right, #f59e0b, #f97316);
+.e429-b1 {
+    top: -120px;
+    right: -80px;
+    width: 340px;
+    height: 340px;
+    background: linear-gradient(135deg, #f59e0b, #f97316);
 }
 
-.rate-limit-blob-2 {
-    bottom: -2rem;
-    left: 5rem;
-    width: 18rem;
-    height: 18rem;
-    background: linear-gradient(to bottom right, #eab308, #f59e0b);
-    animation-delay: 2s;
+.e429-b2 {
+    bottom: -40px;
+    left: 60px;
+    width: 300px;
+    height: 300px;
+    background: linear-gradient(135deg, #eab308, #f59e0b);
+    animation-delay: 2.5s;
 }
 
-.rate-limit-blob-3 {
-    bottom: 0;
-    right: 25%;
-    width: 18rem;
-    height: 18rem;
-    background: linear-gradient(to bottom right, #f97316, #eab308);
-    animation-delay: 4s;
+.e429-b3 {
+    bottom: 20px;
+    right: 22%;
+    width: 280px;
+    height: 280px;
+    background: linear-gradient(135deg, #f97316, #eab308);
+    animation-delay: 5s;
 }
 
-.rate-limit-grid-pattern {
-    position: absolute;
-    inset: 0;
-    opacity: 0.1;
-    background-size: 50px 50px;
+.e429-grid {
     background-image:
-        linear-gradient(0deg, transparent 24%, rgba(180, 83, 9, 0.05) 25%, rgba(180, 83, 9, 0.05) 26%, transparent 27%, transparent 74%, rgba(180, 83, 9, 0.05) 75%, rgba(180, 83, 9, 0.05) 76%, transparent 77%),
-        linear-gradient(90deg, transparent 24%, rgba(180, 83, 9, 0.05) 25%, rgba(180, 83, 9, 0.05) 26%, transparent 27%, transparent 74%, rgba(180, 83, 9, 0.05) 75%, rgba(180, 83, 9, 0.05) 76%, transparent 77%);
+        linear-gradient(0deg, transparent 24%, rgba(180, 83, 9, .04) 25%, rgba(180, 83, 9, .04) 26%, transparent 27%, transparent 74%, rgba(180, 83, 9, .04) 75%, rgba(180, 83, 9, .04) 76%, transparent 77%),
+        linear-gradient(90deg, transparent 24%, rgba(180, 83, 9, .04) 25%, rgba(180, 83, 9, .04) 26%, transparent 27%, transparent 74%, rgba(180, 83, 9, .04) 75%, rgba(180, 83, 9, .04) 76%, transparent 77%);
+    background-size: 50px 50px;
 }
 
-/* =========================
-   Content
-========================= */
-.rate-limit-content {
-    position: relative;
-    z-index: 10;
-    text-align: center;
-    max-width: 600px;
-    padding: 1rem;
-    animation: rate-limit-fadeIn 0.8s ease-out;
+.e429-fade-up {
+    animation: e429-fade-up .9s cubic-bezier(.16, 1, .3, 1) both;
 }
 
-.rate-limit-error-code {
-    font-size: 8rem;
-    font-weight: 900;
-    background: linear-gradient(to right, #fbbf24, #fb923c, #f87171);
-
-    /* FIX warning + cross-browser */
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
-
-    animation: rate-limit-pulse 2s infinite;
+.e429-pulse-border {
+    animation: e429-flicker 3s ease-in-out infinite;
 }
 
-.rate-limit-title {
-    font-size: 2.5rem;
-    font-weight: bold;
-    color: #f1f5f9;
-    margin-bottom: 1rem;
-}
-
-/* =========================
-   Info Box
-========================= */
-.rate-limit-info-box {
-    background: rgba(30, 41, 59, 0.5);
-    border: 1px solid rgba(245, 158, 11, 0.3);
-    border-radius: 8px;
-    padding: 1.5rem;
-    margin-bottom: 2rem;
-    backdrop-filter: blur(6px);
-}
-
-.rate-limit-info-text {
-    font-family: monospace;
-    font-size: 0.9rem;
-    color: #cbd5f5;
-}
-
-.rate-limit-line {
-    margin-bottom: 0.5rem;
-}
-
-.rate-limit-symbol {
-    color: orange;
-}
-
-.rate-limit-symbol-error {
-    color: red;
-}
-
-/* =========================
-   Buttons
-========================= */
-.rate-limit-actions {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-.rate-limit-btn {
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-    cursor: pointer;
-    font-weight: 600;
-}
-
-.rate-limit-btn-warning {
-    background: #f59e0b;
-    color: black;
-}
-
-.rate-limit-btn-warning:hover {
-    background: #d97706;
-}
-
-.rate-limit-btn-outline {
-    border: 1px solid #f59e0b;
-    color: #f59e0b;
-}
-
-.rate-limit-btn-outline:hover {
-    background: rgba(245, 158, 11, 0.1);
-}
-
-/* =========================
-   Animations
-========================= */
-@keyframes rate-limit-blob {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    33% { transform: translate(30px, -50px) scale(1.1); }
-    66% { transform: translate(-20px, 20px) scale(0.9); }
-}
-
-@keyframes rate-limit-fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes rate-limit-pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.6; }
+.e429-pulse {
+    animation: e429-pulse 2s ease-in-out infinite;
 }
