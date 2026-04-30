@@ -1,0 +1,37 @@
+<!-- ✅ Trusted Types compatibility policy -->
+<!-- <script nonce="{{ g.csp_nonce }}">
+if (window.trustedTypes && trustedTypes.createPolicy) {
+    trustedTypes.createPolicy('default', {
+    createHTML: (input) => input,
+    createScript: (input) => input,
+    createScriptURL: (input) => input
+    });
+}
+</script> -->
+
+<!-- ✅ ANTI FLICKER CLOAK (INLINE, PALING AWAL) -->
+<!-- <style nonce="{{ g.csp_nonce }}"> [x-cloak] {display: none !important;} </style> -->
+
+<!-- ✅ THEME BOOTSTRAP (SEBELUM FIRST PAINT) -->
+<!-- <script nonce="{{ g.csp_nonce }}"> 
+    (function () {
+        const stored = localStorage.getItem('theme'); 
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches; 
+        const theme = stored || (prefersDark ? 'dim' : 'bumblebee'); 
+        document.documentElement.setAttribute('data-theme', theme); 
+    })();
+</script> -->
+
+<!-- 🔥 LOCATION STATE FROM BACKEND -->
+<!-- <script nonce="{{ g.csp_nonce }}"> 
+    window.__LOCATION_EXPIRED__ = JSON.parse('{{ g.location.expired | tojson }}'); 
+</script>
+ -->
+<!-- CSS -->
+<!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}"> -->
+
+<!-- Manifest -->
+<!-- <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}"> -->
+
+<!-- Favicon -->
+<!-- {% include 'base/favicon.html' %} -->

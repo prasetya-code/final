@@ -1,23 +1,27 @@
 from flask import Flask
-from flask_compress import Compress
 
-from extension.flask_cache import init_cache
-from extension.flask_limiter import limiter
-
-compress = Compress()  # inisialisasi tanpa app dulu
 
 def create_app():
     # initialize core
     core = Flask(__name__, static_folder='static', template_folder='templates')
 
-    # aktifkan compression
-    compress.init_app(core)
     
-    # cache
-    init_cache(core)
 
-    # rate limiter
-    limiter.init_app(core)
+    # register extension
+    from app.extension import register_extension
+    register_extension(core)
+
+    """ # register config
+    from config import register_config
+    register_config(core)
+
+    # register middleware
+    from app.middleware import register_middleware
+    register_middleware(core) """
+
+    # register routes
+    from app.routes import register_routes
+    register_routes(core)
 
     """ # Cegah browser cache halaman HTML (fix untuk Brave & aggressive caching)
     @core.after_request

@@ -1,99 +1,128 @@
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-import os
-
-
-DEFAULT_LIMIT = ["200 per day", "50 per hour"]
+from functools import wraps
+import os, redis
 
 
 # =========================
-# KEY FUNCTION (IDENTITY)
+# CONFIG
+# =========================
+DEFAULT_LIMITS = ["200 per day", "50 per hour"]
+
+REDIS_URL = os.getenv("LIMITER_REDIS_URL", "redis://localhost:6379/0")
+KEY_PREFIX = os.getenv("LIMITER_KEY_PREFIX", "rl:")
+
+
+# =========================
+# KEY FUNCTION
 # =========================
 def default_key_func():
     return get_remote_address()
 
 
 # =========================
-# STORAGE SELECTION (SCALABLE + FALLBACK)
+# STORAGE
 # =========================
 def get_storage_uri():
-    """
-    Prioritas:
-    1. Redis (production)
-    2. Memory (fallback / dev)
-    """
+    try:
+        if REDIS_URL.startswith("redis://") or REDIS_URL.startswith("rediss://"):
+            client = redis.Redis.from_url(
+                REDIS_URL,
 
-    redis_url = os.getenv("LIMITER_REDIS_URL")
+                # REDIS CHECK
+                socket_connect_timeout=2,
+                socket_timeout=2,
+            )
+            client.ping()
 
-    if redis_url:
-        try:
-            # simple validation attempt (optional safe guard)
-            if redis_url.startswith("redis://"):
-                return redis_url
-        except Exception:
-            pass
+            print("[LIMITER] Redis connected")
+            return REDIS_URL
 
-    # fallback default
+    except Exception as e:
+        print(f"[LIMITER WARNING] Redis failed, fallback memory: {e}")
+
     return "memory://"
+
+
+# =========================
+# LIMITER INSTANCE
+# =========================
+limiter = Limiter(
+    key_func=default_key_func,
+    default_limits=DEFAULT_LIMITS,
+    storage_uri=get_storage_uri(),
+    strategy="moving-window",
+    headers_enabled=True,
+    swallow_errors=True,
+    key_prefix=KEY_PREFIX,
+)
+
+
+# =========================
+# ENDPOINT LIMITS
+# =========================
+ENDPOINT_LIMITS = {
+    "main.index": ["20 per minute", "150 per hour"],
+    "main.about": ["15 per minute", "100 per hour"],
+    "main.project": ["15 per minute", "100 per hour"],
+    "debug.health": ["5 per minute", "20 per hour"],
+}
+
+
+# =========================
+# DECORATOR
+# =========================
+def apply_limits(key):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
+
+        limited = wrapper
+
+        for limit in reversed(ENDPOINT_LIMITS.get(key, [])):
+            limited = limiter.limit(limit)(limited)
+
+        return limited
+
+    return decorator
+
+
+# =========================
+# ERROR HANDLER
+# =========================
+def rate_limit_exceeded(e):
+    print(f"[SECURITY] Rate limit exceeded: {e.description}")
+
+    return {
+        "error": "Too many requests",
+        "message": "Rate limit exceeded"
+    }, 429
 
 
 # =========================
 # INIT LIMITER
 # =========================
+def init_limiter(app):
+    env = app.config.get("ENV", "production")
 
-"""
-LIMITER CONFIG OPTIONS (Flask-Limiter)
+    # =========================
+    # DEV MODE
+    # =========================
+    if env == "development":
+        print("[LIMITER] Disabled in development mode")
+        limiter.enabled = False
+        limiter.init_app(app)
+        return
 
-1. key_func
-- Fungsi untuk menentukan identitas user yang dikenai limit
-- Default: get_remote_address (IP address client)
-- ✔ cocok: simple API / public endpoint
-- ❗ bisa diganti ke user_id untuk sistem login
+    storage_uri = get_storage_uri()
 
+    app.config["RATELIMIT_STORAGE_URI"] = storage_uri
+    app.config["RATELIMIT_KEY_PREFIX"] = KEY_PREFIX
+    app.config["RATELIMIT_SWALLOW_ERRORS"] = True
 
-2. default_limits
-- Limit global untuk semua endpoint
-- ✔ cocok: baseline protection API
-- contoh:
-    ["200 per day", "50 per hour"]
+    limiter.init_app(app)
 
+    app.register_error_handler(429, rate_limit_exceeded)
 
-3. storage_uri
-- Tempat penyimpanan data hit request
-- Redis:
-    - ✔ production scalable
-    - ✔ multi instance / load balancer
-
-- memory://
-    - ✔ fallback dev
-    - ❌ tidak persistent
-
-
-4. strategy
-- Cara menghitung rate limit
-- "moving-window"
-    - ✔ lebih smooth & akurat
-    - ✔ cocok production
-
-
-5. headers_enabled
-- Menambahkan header rate limit:
-    - X-RateLimit-Limit
-    - X-RateLimit-Remaining
-    - X-RateLimit-Reset
-
-
-6. swallow_errors
-- Jika True:
-    - app tidak crash saat storage error
-    - limiter fallback ke behavior default
-"""
-
-limiter = Limiter(
-    key_func=default_key_func,
-    default_limits=DEFAULT_LIMIT,
-    storage_uri=get_storage_uri(),
-    strategy="moving-window",
-    headers_enabled=True,
-    swallow_errors=True
-)
+    print(f"[LIMITER] Initialized with storage: {storage_uri}")

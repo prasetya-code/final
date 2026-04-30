@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Mandatory Head -->
+    {% include 'base/mandatory_head.html' %}
+
+    <title>{% block title %}Prasetya Code{% endblock %}</title>
+    
+</head>
+
+<body
+  class="min-h-[100dvh]"
+  x-data="{ theme: document.documentElement.dataset.theme }"
+  x-cloak
+  x-effect="
+    localStorage.theme = theme;
+    document.documentElement.dataset.theme = theme;
+    console.log('Theme now:', theme);
+  "
+>
+
+    <!-- Content -->
+    {% block content %}{% endblock %}
+
+    <!-- Mandatory Tail -->
+    {% include 'base/mandatory_tail.html' %}
+
+</body>
+</html>

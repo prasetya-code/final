@@ -1,0 +1,68 @@
+{
+  "_readme": "File ini berisikan project dan industry",
+  
+  "profile": {
+    "summary": [
+      "End-to-end data development",
+      "Data preprocessing",
+      "EDA & pipeline automation",
+      "Model evaluation & optimization",
+      "Data visualization & storytelling",
+      "Machine learning workflow",
+      "MLOps & deployment",
+      "Cloud-based architecture"
+    ],
+
+    "latest_project": [
+      {
+        "name": "Customer Churn Prediction",
+        "description": "Model XGBoost menurunkan churn sebesar 8%."
+      },
+      {
+        "name": "Sales Forecasting Dashboard",
+        "description": "Akurasi MAPE meningkat dari 12% menjadi 7%."
+      }
+    ],
+
+    "domain": "ambil dari project.json",
+
+    "experience": [
+      {
+        "period": "2021 - Sekarang",
+        "title": "Senior Data Scientist",
+        "company": "Tech Unicorn Indonesia",
+        "description": "Memimpin tim 5 analyst, meningkatkan retensi 15%, mengelola warehouse AWS Redshift.",
+        "status": "aktif"
+      },
+      {
+        "period": "2018 - 2021",
+        "title": "Data Analyst",
+        "company": "E-commerce Nusantara",
+        "description": "Dashboard Tableau otomatis, hemat 10 jam laporan per minggu.",
+        "status": "non-aktif"
+      },
+      {
+        "period": "2017 - 2018",
+        "title": "Junior Data Associate",
+        "company": "Consulting Group Asia",
+        "description": "Pembersihan data klien dengan Excel & Python.",
+        "status": "non-aktif"
+      }
+    ], 
+    
+    "certification": [
+      {
+        "name": "Google Data Analytics Certificate",
+        "year": "2020",
+        "type": "Sertifikasi Profesional",
+        "focus": "Analisis data dengan R & Tableau"
+      },
+      {
+        "name": "Google Data Science Certificate",
+        "year": "2020",
+        "type": "Sertifikasi Profesional",
+        "focus": "Modeling with Pytorch"
+      }
+    ]
+  }
+}

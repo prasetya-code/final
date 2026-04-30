@@ -1,0 +1,158 @@
+{
+  "_readme": "File ini berisikan project dan industry",
+
+  "_image_note": "image berada di folder private melewati file_routes demi keamanan data",
+  "_file_note": "files berada di folder private melewati file_routes demi keamanan data",
+
+  "project": [
+    { "title_project": "Churn Prediction AI",
+      "img_project": "project/sample.png",
+      "tech_use": ["Scikit-Learn"],
+      "job_roles": ["ML Engineer", "Data Scientist"],
+      "project_description": "Model prediksi churn pelanggan menggunakan ensemble learning dan Random Forest.",
+      "project_action": { "label": "View Project", "link": "/project?q=churn prediction" },
+
+      "industry_title": "Fintech",
+      "industry_icon": "mdi:bank",
+      "industry_category": "Financial Technology",
+      "img_industry": "industry/fintech.png",
+      "industry_description": "Industri finansial berbasis teknologi, fokus pada layanan perbankan digital dan pembayaran online.",
+      "industry_action": { "label": "Explore Industry", "link": "/project?industry=fintech" }
+    },
+
+    { "title_project": "Interactive Retail Dashboard",
+      "img_project": "project/sample.png",
+      "tech_use": ["Tableau", "PostgreSQL"],
+      "job_roles": ["Data Analyst"],
+      "project_description": "Dashboard interaktif untuk analisis penjualan bulanan dan performa toko.",
+      "project_action": { "label": "View Project", "link": "/project?q=retail dashboard" },
+
+      "industry_title": "E-commerce",
+      "industry_icon": "mdi:cart-outline",
+      "industry_category": "Digital Commerce",
+      "img_industry": "industry/ecommerce.png",
+      "industry_description": "Industri jual beli online, analisis transaksi, dan optimasi pengalaman pelanggan.",
+      "industry_action": { "label": "Explore Industry", "link": "/project?industry=e-commerce" }
+    },
+
+    { "title_project": "Automated ETL Pipeline",
+      "img_project": "project/sample.png",
+      "tech_use": ["BigQuery", "Python"],
+      "job_roles": ["Data Engineer"],
+      "project_description": "Otomatisasi ETL pipeline untuk memproses jutaan data harian dengan efisien.",
+      "project_action": { "label": "View Project", "link": "/project?q=etl pipeline" },
+
+      "industry_title": "Enterprise",
+      "industry_icon": "mdi:office-building",
+      "industry_category": "Corporate & Enterprise",
+      "img_industry": "industry/enterprise.png",
+      "industry_description": "Perusahaan besar yang mengelola volume data tinggi dan membutuhkan solusi analitik terintegrasi.",
+      "industry_action": { "label": "Explore Industry", "link": "/project?industry=enterprise" }
+    },
+
+    { "title_project": "Sentiment Analyzer",
+      "img_project": "project/sample.png",
+      "tech_use": ["Scikit-Learn"],
+      "job_roles": ["ML Engineer"],
+      "project_description": "Analisis sentimen menggunakan Scikit-Learn untuk konten media sosial.",
+      "project_action": { "label": "View Project", "link": "/project?q=sentiment analyzer" },
+
+      "industry_title": "Media",
+      "industry_icon": "mdi:newspaper-variant-outline",
+      "industry_category": "Digital Media",
+      "img_industry": "industry/media.png",
+      "industry_description": "Industri media digital dan sosial, berfokus pada konten, berita, dan interaksi pengguna.",
+      "industry_action": { "label": "Explore Industry", "link": "/project?industry=media" }
+    },
+
+    { "title_project": "E-commerce Transaction Insights",
+      "img_project": "project/sample.png",
+      "tech_use": ["PostgreSQL", "BigQuery", "Python"],
+      "job_roles": ["Data Analyst"],
+      "project_description": "Analisis lebih dari 2 juta transaksi untuk meningkatkan retention pelanggan.",
+      "project_action": { "label": "View Project", "link": "/project?q=ecommerce insights" },
+
+      "industry_title": "E-commerce",
+      "industry_icon": "mdi:cart-outline",
+      "industry_category": "Digital Commerce",
+      "img_industry": "industry/ecommerce.png",
+      "industry_description": "Industri jual beli online, analisis transaksi, dan optimasi pengalaman pelanggan.",
+      "industry_action": { "label": "Explore Industry", "link": "/project?industry=e-commerce" }
+    },
+
+    { "title_project": "Jakarta Traffic Heatmap",
+      "img_project": "project/sample.png",
+      "tech_use": ["GeoPandas", "Python"],
+      "job_roles": ["Data Analyst"],
+      "project_description": "Visualisasi kemacetan lalu lintas Jakarta secara interaktif.",
+      "project_action": { "label": "View Project", "link": "/project?q=traffic heatmap" },
+
+      "industry_title": "Smart City",
+      "industry_icon": "mdi:city-variant-outline",
+      "industry_category": "Urban Technology",
+      "img_industry": "industry/smartcity.png",
+      "industry_description": "Solusi berbasis teknologi untuk meningkatkan kualitas hidup di kota besar.",
+      "industry_action": { "label": "Explore Industry", "link": "/project?industry=smartcity" }
+    },
+
+    { "title_project": "Smart Home Automation",
+      "img_project": "project/sample.png",
+      "tech_use": ["Raspberry Pi", "Flask"],
+      "job_roles": ["IoT Engineer"],
+      "project_description": "Sistem automasi lampu, AC, dan keamanan rumah berbasis IoT.",
+      "project_action": { "label": "View Project", "link": "/project?q=smart home" },
+
+      "industry_title": "IoT",
+      "industry_icon": "mdi:chip",
+      "industry_category": "Internet of Things",
+      "img_industry": "industry/iot.png",
+      "industry_description": "Industri Internet of Things, fokus pada automasi, sensor, dan perangkat cerdas.",
+      "industry_action": { "label": "Explore Industry", "link": "/project?industry=iot" }
+    },
+
+    { "title_project": "AI Resume Screening",
+      "img_project": "project/sample.png",
+      "tech_use": ["Py Torch"],
+      "job_roles": ["ML Engineer"],
+      "project_description": "Menyaring dan memberi ranking CV secara otomatis menggunakan AI.",
+      "project_action": { "label": "View Project", "link": "/project?q=ai resume" },
+
+      "industry_title": "HR Tech",
+      "industry_icon": "mdi:account-group-outline",
+      "industry_category": "Human Resources Technology",
+      "img_industry": "industry/hrtech.png",
+      "industry_description": "Solusi teknologi untuk proses rekrutmen, manajemen talent, dan HR otomatis.",
+      "industry_action": { "label": "Explore Industry", "link": "/project?industry=hrtech" }
+    },
+
+    { "title_project": "Social Media Engagement Tracker",
+      "img_project": "project/sample.png",
+      "tech_use": ["Pandas", "Matplotlib"],
+      "job_roles": ["Data Analyst"],
+      "project_description": "Analisis engagement media sosial untuk strategi pemasaran yang lebih baik.",
+      "project_action": { "label": "View Project", "link": "/project?q=social media analytics" },
+
+      "industry_title": "Marketing",
+      "industry_icon": "mdi:bullhorn-outline",
+      "industry_category": "Digital Marketing",
+      "img_industry": "industry/marketing.png",
+      "industry_description": "Industri pemasaran digital dan strategi promosi berbasis data.",
+      "industry_action": { "label": "Explore Industry", "link": "/project?industry=marketing" }
+    },
+
+    { "title_project": "Sales Forecast Model",
+      "img_project": "project/sample.png",
+      "tech_use": ["Scikit-Learn"],
+      "job_roles": ["Data Scientist"],
+      "project_description": "Model prediksi penjualan berbasis regresi linear dan machine learning.",
+      "project_action": { "label": "View Project", "link": "/project?q=sales forecast" },
+
+      "industry_title": "E-commerce",
+      "industry_icon": "mdi:cart-outline",
+      "industry_category": "Digital Commerce",
+      "img_industry": "industry/ecommerce.png",
+      "industry_description": "Industri jual beli online, analisis transaksi, dan optimasi pengalaman pelanggan.",
+      "industry_action": { "label": "Explore Industry", "link": "/project?industry=e-commerce" }
+    }
+  ]
+}
