@@ -117,7 +117,7 @@ def init_limiter(app):
         # =========================
         fl_limiter.init_app(app)
 
-        print(f"[LIMITER] Initialized with storage: {storage_uri}")
+        print(f"[LIMITER] Initialized with storage: {storage_uri} \n")
 
     except Exception as e:
         print(f"[LIMITER ERROR] Failed to initialize limiter: {e}")

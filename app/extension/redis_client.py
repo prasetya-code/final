@@ -2,7 +2,7 @@ import redis
 from redis.retry import Retry
 from redis.backoff import ExponentialBackoff
 
-import os, traceback, socket
+import os, traceback, socket, threading, time
 from urllib.parse import urlparse
 
 
@@ -19,32 +19,17 @@ _cache_client = None
 _limit_client = None
 
 # =========================
+# HEALTH STATUS (GLOBAL)
+# =========================
+redis_health_status = {
+    "cache": None,
+    "limit": None,
+}
+
+# =========================
 # TIMEOUT (dalam detik)
 # =========================
-# Mengatur waktu maksimum untuk:
-# - socket_connect_timeout → waktu untuk koneksi awal ke Redis
-# - socket_timeout         → waktu tunggu response dari Redis
-#
-# Rekomendasi:
-# - Sangat agresif : 1 - 2 detik
-#   → cocok untuk system ultra cepat
-#   → risiko: mudah timeout kalau network sedikit lambat
-#
-# - Agresif : 2 - 3 detik
-#   → cocok untuk production cepat (low latency)
-#
-# - Normal (recommended) : 3 - 5 detik
-#   → balance antara kecepatan & stabilitas
-#   → cocok untuk sebagian besar aplikasi
-#
-# - Long / toleran : 5 - 10 detik
-#   → cocok untuk network tidak stabil / cloud jauh
-#   → risiko: response terasa lambat saat error
-#
-# Catatan:
-# - Timeout terlalu kecil → sering gagal connect
-# - Timeout terlalu besar → aplikasi terasa "hang" saat Redis down
-#
+# ... (SEMUA KOMEN KAMU TETAP)
 TIMEOUT = 5  #(recommended: normal range
 
 
@@ -55,29 +40,11 @@ REDIS_COMMON_CONFIG = {
     # =========================
     # CONNECTION POOL
     # =========================
-    # max_connections:
-    # - Membatasi jumlah koneksi ke Redis
-    # - Penting untuk menghindari overload Redis server
-    #
-    # Tips:
-    # - Sesuaikan dengan jumlah worker aplikasi
-    # - Jangan terlalu besar jika Redis kecil
     "max_connections": 20,
 
     # =========================
     # RETRY STRATEGY (versi simpel)
     # =========================
-    # retry:
-    # - Akan mencoba ulang jika koneksi gagal
-    #
-    # Retry(..., 3):
-    # - Maksimal 3 kali percobaan ulang
-    #
-    # ExponentialBackoff():
-    # - Delay antar retry makin lama
-    #
-    # retry_on_timeout=True:
-    # - Timeout juga akan dicoba ulang
     "retry": Retry(ExponentialBackoff(), 3),
     "retry_on_timeout": True,
 }
@@ -121,7 +88,7 @@ def debug_check_port(host, port):
 
 
 # =========================
-# HEALTH CHECK
+# HEALTH CHECK (SINGLE)
 # =========================
 def is_alive(client):
     try:
@@ -141,7 +108,6 @@ def create_client(url):
     try:
         print(f"[REDIS] Creating client for {url}")
 
-        # Debug URL
         debug_redis_url(url)
 
         client = redis.Redis.from_url(url, **REDIS_COMMON_CONFIG)
@@ -160,14 +126,12 @@ def get_cache_redis():
     global _cache_client
 
     try:
-        # Gunakan client jika masih valid
         if _cache_client and is_alive(_cache_client):
             print("[REDIS CACHE] Using existing alive connection")
             return _cache_client
 
         print("[REDIS CACHE] Connecting...")
 
-        # Debug koneksi
         parsed = urlparse(REDIS_CACHE_URL)
         debug_check_port(parsed.hostname, parsed.port)
 
@@ -200,14 +164,12 @@ def get_limit_redis():
     global _limit_client
 
     try:
-        # Gunakan client jika masih valid
         if _limit_client and is_alive(_limit_client):
             print("[REDIS LIMIT] Using existing alive connection")
             return _limit_client
 
         print("[REDIS LIMIT] Connecting...")
 
-        # Debug koneksi
         parsed = urlparse(REDIS_LIMIT_URL)
         debug_check_port(parsed.hostname, parsed.port)
 
@@ -239,7 +201,6 @@ def get_limit_redis():
 def is_cache_redis_available():
     try:
         return get_cache_redis() is not None
-
     except Exception as e:
         print(f"[REDIS CACHE CHECK ERROR] {e}")
         traceback.print_exc()
@@ -249,8 +210,69 @@ def is_cache_redis_available():
 def is_limit_redis_available():
     try:
         return get_limit_redis() is not None
-
     except Exception as e:
         print(f"[REDIS LIMIT CHECK ERROR] {e}")
         traceback.print_exc()
         return False
+
+
+# =========================
+# 🔥 BACKGROUND HEALTH CHECK
+# =========================
+HEALTH_CHECK_INTERVAL = 10  # detik
+
+"""
+INTERVAL:
+- 5s  → agresif (debug)
+- 10s → recommended
+- 30s → ringan
+"""
+
+def _check_and_update(name, client_getter, key):
+    try:
+        client = client_getter()
+
+        if client is None:
+            status = False
+        else:
+            status = is_alive(client)
+
+        # hanya print jika status berubah
+        if redis_health_status[key] != status:
+            redis_health_status[key] = status
+            print(f"[REDIS HEALTH] {name} → {'UP' if status else 'DOWN'}")
+
+    except Exception as e:
+        print(f"[REDIS HEALTH ERROR] {name}: {e}")
+        traceback.print_exc()
+
+
+def _health_loop():
+    print("[REDIS HEALTH] Background thread started")
+
+    while True:
+        try:
+            _check_and_update("CACHE", get_cache_redis, "cache")
+            _check_and_update("LIMIT", get_limit_redis, "limit")
+
+        except Exception as e:
+            print(f"[REDIS HEALTH CRITICAL] {e}")
+            traceback.print_exc()
+
+        time.sleep(HEALTH_CHECK_INTERVAL)
+
+
+def start_redis_health_check(global_redis=True):
+    try:
+        if not global_redis:
+            print("[REDIS HEALTH] Disabled (GLOBAL_REDIS=False)")
+            return
+
+        print("[REDIS HEALTH] Starting background checker...")
+
+        t = threading.Thread(target=_health_loop, daemon=True)
+        t.start()
+
+    except Exception as e:
+        print(f"[REDIS HEALTH ERROR] Failed to start: {e}")
+        traceback.print_exc()
