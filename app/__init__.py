@@ -12,6 +12,15 @@ def create_app():
         from app.extension import register_extension
         register_extension(core)
 
+        # register config
+        # ===================
+        # sample
+
+        # register utils
+        # ===================
+        from app.utils import register_utils
+        register_utils(core)
+
         # register routes
         # ===================
         from app.routes import register_routes
