@@ -1,6 +1,6 @@
 from flask_compress import Compress
 
-compress = Compress()
+fl_compress = Compress()
 
 
 def init_compress(app):
@@ -43,4 +43,4 @@ def init_compress(app):
     # range 0-11 (4 = balance antara speed & compression)
 
     # init extension
-    compress.init_app(app)
+    fl_compress.init_app(app)

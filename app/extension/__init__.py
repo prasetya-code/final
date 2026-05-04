@@ -2,7 +2,7 @@ import traceback
 
 def register_extension(app):
     try:
-        from .flask_compresing import init_compress
+        from .flask_compressing import init_compress
         from .flask_cache import init_cache
         from .flask_limit import init_limiter
 

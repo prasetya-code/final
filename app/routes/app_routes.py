@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template
 
-from app.extension.flask_cache import cache
-from app.extension.flask_limit import limiter
+from app.extension.flask_cache import fl_cache
+from app.extension.flask_limit import fl_limiter
 
 
 main_bp = Blueprint('main', __name__)
@@ -12,8 +12,8 @@ main_bp = Blueprint('main', __name__)
 # =========================
 
 @main_bp.route("/", methods=["GET"])
-@limiter.limit("5 per minute")
-@cache.cached(timeout=60, response_filter=lambda r: getattr(r, "status_code", 200) == 200)
+@fl_limiter.limit("5 per minute")
+@fl_cache.cached(timeout=60, response_filter=lambda r: getattr(r, "status_code", 200) == 200)
 def index():
     return render_template("app/index.html")
 
