@@ -11,6 +11,12 @@ DEFAULT = ["200 per day", "50 per hour"]
 GET_REDIS_URL = REDIS_LIMIT_URL
 KEY_PREFIX = os.getenv("LIMITER_KEY_PREFIX", "rl:")
 
+# =========================
+# ENV CONTROL (SECONDARY)
+# =========================
+# Change val env (str) into boolean (TRUE / FALSE)
+USE_REDIS_LIMITER = os.getenv("USE_REDIS_LIMITER", "true").lower() == "true"
+
 
 # =========================
 # KEY FUNCTION
@@ -23,37 +29,6 @@ def default_key_func():
         print(f"[LIMITER ERROR] Failed to get remote address: {e}")
         traceback.print_exc()
         return "unknown"
-
-
-# =========================
-# STORAGE DECISION
-# =========================
-def get_storage_uri():
-    """
-    Menentukan backend storage untuk rate limiter.
-
-    Flow:
-    - Jika Redis tersedia → gunakan Redis
-    - Jika tidak → fallback ke memory
-
-    Catatan:
-    - memory:// hanya cocok untuk development / single process
-    - tidak cocok untuk multi-worker (misalnya gunicorn)
-    """
-    try:
-        if is_limit_redis_available():
-            print("[LIMITER] Using Redis storage")
-            return GET_REDIS_URL
-
-        print("[LIMITER WARNING] Using memory storage fallback")
-        return "memory://"
-
-    except Exception as e:
-        print(f"[LIMITER ERROR] Storage decision failed: {e}")
-        traceback.print_exc()
-
-        # fallback paksa
-        return "memory://"
 
 
 # =========================
@@ -81,13 +56,12 @@ Catatan:
 # =========================
 # LIMITER INSTANCE
 # =========================
-# Instance limiter dibuat tanpa app (lazy init)
 fl_limiter = Limiter(
     key_func=default_key_func,
     default_limits=DEFAULT,
-    strategy="moving-window",  # akurat untuk rate limiting
-    headers_enabled=True,      # tambahkan header X-RateLimit
-    swallow_errors=True,       # tidak crash jika limiter error
+    strategy="moving-window",
+    headers_enabled=True,
+    swallow_errors=True,
     key_prefix=KEY_PREFIX,
 )
 
@@ -97,15 +71,50 @@ fl_limiter = Limiter(
 # =========================
 def init_limiter(app):
     try:
-        # Tentukan storage backend
-        storage_uri = get_storage_uri()
+        # =========================
+        # GLOBAL CONTROL (MASTER SWITCH)
+        # =========================
+        global_redis = app.config.get("GLOBAL_REDIS", True)
 
-        # Inject ke config Flask
+        # print(f"[LIMITER] GLOBAL_REDIS = {global_redis}")
+        print(f"[LIMITER] ENV USE_REDIS_LIMITER = {USE_REDIS_LIMITER}")
+
+        # =========================
+        # STORAGE DECISION
+        # =========================
+        # PRIORITY:
+        # 1. GLOBAL_REDIS
+        # 2. ENV (USE_REDIS_LIMITER)
+        # 3. Redis availability
+        #
+        if not global_redis:
+            print("[LIMITER] Disabled Redis")
+            storage_uri = "memory://"
+
+        elif not USE_REDIS_LIMITER:
+            print("[LIMITER] Disabled via ENV → using memory storage")
+            storage_uri = "memory://"
+
+        else:
+            print("[LIMITER] Checking Redis availability...")
+
+            if is_limit_redis_available():
+                print("[LIMITER] Using Redis storage")
+                storage_uri = GET_REDIS_URL
+            else:
+                print("[LIMITER WARNING] Redis not available → fallback to memory")
+                storage_uri = "memory://"
+
+        # =========================
+        # APPLY CONFIG
+        # =========================
         app.config["RATELIMIT_STORAGE_URI"] = storage_uri
         app.config["RATELIMIT_KEY_PREFIX"] = KEY_PREFIX
         app.config["RATELIMIT_SWALLOW_ERRORS"] = True
 
-        # Init limiter
+        # =========================
+        # INIT LIMITER
+        # =========================
         fl_limiter.init_app(app)
 
         print(f"[LIMITER] Initialized with storage: {storage_uri}")

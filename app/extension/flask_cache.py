@@ -23,7 +23,7 @@ def ensure_cache_dir():
 
 
 # =========================
-# CONFIG
+# CONFIG (STATIC ONLY)
 # =========================
 class CacheConfig:
     """CACHE_TYPE options (yang paling sering digunakan):
@@ -48,41 +48,28 @@ class CacheConfig:
     Catatan:
     - Gunakan RedisCache untuk production jika memungkinkan
     - SimpleCache tidak cocok untuk multi-worker (misal gunicorn)
-    """
 
-    try:
-        CACHE_TYPE = "RedisCache" if is_cache_redis_available() else "SimpleCache"
-        
-    except Exception as e:
-        print(f"[CACHE WARNING] Redis check failed: {e}")
-        traceback.print_exc()
-        CACHE_TYPE = "SimpleCache"  # fallback paksa jika error
+    ⚠️ IMPORTANT:
+    - Class ini hanya berisi konfigurasi statis
+    - Logic pemilihan CACHE_TYPE dilakukan di init_cache()
+    """
 
     # =========================
     # GENERAL CACHE SETTINGS
     # =========================
-    # Default timeout cache (detik)
     CACHE_DEFAULT_TIMEOUT = int(os.getenv("CACHE_DEFAULT_TIMEOUT", 300))
-
-    # Jumlah maksimum item dalam cache
     CACHE_THRESHOLD = int(os.getenv("CACHE_THRESHOLD", 500))
-
-    # Abaikan error cache (tidak crash app)
     CACHE_IGNORE_ERRORS = True
-
-    # Prefix key cache (untuk namespacing)
     CACHE_KEY_PREFIX = os.getenv("CACHE_KEY_PREFIX", "myapp_")
 
     # =========================
     # REDIS CONFIG
     # =========================
-    # Menggunakan single source of truth dari redis_client
     CACHE_REDIS_URL = REDIS_CACHE_URL
 
     # =========================
     # FILESYSTEM CONFIG
     # =========================
-    # Digunakan jika CACHE_TYPE = FileSystemCache
     CACHE_DIR = CACHE_PATH
 
     # Disable warning untuk null cache
@@ -94,25 +81,71 @@ class CacheConfig:
 # =========================
 def init_cache(app):
     try:
-        # Load konfigurasi ke Flask app
+        # =========================
+        # LOAD STATIC CONFIG
+        # =========================
         app.config.from_object(CacheConfig)
 
-        # Jika menggunakan FileSystemCache → pastikan directory ada
-        if app.config["CACHE_TYPE"] == "FileSystemCache":
-            ensure_cache_dir()
+        # =========================
+        # ENV CONTROL (OPTIONAL)
+        # =========================
+        USE_REDIS_CACHE = os.getenv("USE_REDIS_CACHE", "true").lower() == "true"
 
+        # =========================
+        # GLOBAL CONTROL (MASTER SWITCH)
+        # =========================
+        global_redis = app.config.get("GLOBAL_REDIS", True)
+
+        # print(f"[CACHE] GLOBAL_REDIS = {global_redis}")
+        print(f"[CACHE] ENV USE_REDIS_CACHE = {USE_REDIS_CACHE}")
+
+        # =========================
+        # DECISION FLOW
+        # =========================
+        if not global_redis:
+            print("[CACHE] Disabled Redis")
+            cache_type = "SimpleCache"
+
+        elif not USE_REDIS_CACHE:
+            print("[CACHE] Disabled via ENV → using SimpleCache")
+            cache_type = "SimpleCache"
+
+        else:
+            print("[CACHE] Checking Redis availability...")
+
+            if is_cache_redis_available():
+                print("[CACHE] Redis available → using RedisCache")
+                cache_type = "RedisCache"
+            else:
+                print("[CACHE WARNING] Redis not available → fallback to SimpleCache")
+                cache_type = "SimpleCache"
+
+        # =========================
+        # APPLY CACHE TYPE
+        # =========================
+        app.config["CACHE_TYPE"] = cache_type
+
+        # =========================
+        # FILESYSTEM HANDLING
+        # =========================
+        if cache_type == "FileSystemCache":
+            ensure_cache_dir()
             print("[CACHE] Using FileSystemCache")
 
-        # Inisialisasi cache
+        # =========================
+        # INIT CACHE
+        # =========================
         fl_cache.init_app(app)
 
-        print(f"[CACHE] Initialized with type: {app.config['CACHE_TYPE']}")
+        print(f"[CACHE] Initialized with type: {cache_type} \n")
 
     except Exception as e:
         print(f"[CACHE ERROR] Failed to initialize cache: {e}")
         traceback.print_exc()
 
-        # Fallback manual (extra safety)
+        # =========================
+        # FALLBACK
+        # =========================
         try:
             print("[CACHE] Falling back to SimpleCache (manual fallback)")
             app.config["CACHE_TYPE"] = "SimpleCache"
