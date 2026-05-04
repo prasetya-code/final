@@ -57,4 +57,4 @@ def index():
 
 # NOTE
 
-> CDN sebaiknya di tidak di letakkan di base.html karena dia akan ikut ke load dan menambah beban load, kecuali memang butuh
+> Terapkan extension **python-json-logger** untuk centralized log agar bisa ➡️ **production-grade logging**
