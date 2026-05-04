@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, current_app
-from ..extension.redis_client import redis_health_status
+from ..extension.redis_client import redis_health_status, redis_health_meta
 
 import os, time
 
@@ -38,6 +38,22 @@ def get_status(value):
     return "unknown"
 
 
+def build_dependency(name, key):
+    """
+    Build detail dependency response
+    """
+    status = get_status(redis_health_status.get(key))
+    meta = redis_health_meta.get(key, {})
+
+    return {
+        "status": status,
+        "latency_ms": meta.get("latency"),
+        "last_check": meta.get("last_check"),
+        "fail_count": meta.get("fail_count"),
+        "circuit_open": meta.get("circuit_open"),
+    }
+
+
 # =========================
 # REDIS STATUS BUILDER
 # =========================
@@ -60,7 +76,7 @@ def build_redis_response():
         }
 
         return {
-            "status": "degraded",  # 🔥 lebih masuk akal
+            "status": "degraded",
             "mode": "no-redis",
             "reason": "Redis is globally disabled",
             "redis_enabled": False,
@@ -75,17 +91,16 @@ def build_redis_response():
     # =========================
     # CASE 2: REDIS ENABLED
     # =========================
-    cache_status = get_status(redis_health_status.get("cache"))
-    limit_status = get_status(redis_health_status.get("limit"))
+    cache_dep = build_dependency("CACHE", "cache")
+    limit_dep = build_dependency("LIMIT", "limit")
 
     dependencies = {
-        "redis_cache": {
-            "status": cache_status
-        },
-        "redis_limiter": {
-            "status": limit_status
-        }
+        "redis_cache": cache_dep,
+        "redis_limiter": limit_dep
     }
+
+    cache_status = cache_dep["status"]
+    limit_status = limit_dep["status"]
 
     # =========================
     # OVERALL STATUS LOGIC
@@ -97,9 +112,14 @@ def build_redis_response():
         overall = "degraded"
         reason = "One or more Redis services are down"
 
-    if cache_status == "unknown" or limit_status == "unknown":
+    if "unknown" in [cache_status, limit_status]:
         overall = "degraded"
         reason = "Redis health status not ready"
+
+    # 🔥 BONUS: circuit breaker awareness
+    if cache_dep["circuit_open"] or limit_dep["circuit_open"]:
+        overall = "degraded"
+        reason = "Circuit breaker active (Redis unstable)"
 
     # =========================
     # HTTP STATUS

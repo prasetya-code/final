@@ -27,9 +27,33 @@ redis_health_status = {
 }
 
 # =========================
+# HEALTH META (ADVANCED)
+# =========================
+redis_health_meta = {
+    "cache": {
+        "latency": None,
+        "last_check": None,
+        "fail_count": 0,
+        "circuit_open": False,
+    },
+    "limit": {
+        "latency": None,
+        "last_check": None,
+        "fail_count": 0,
+        "circuit_open": False,
+    }
+}
+
+# =========================
+# CIRCUIT BREAKER CONFIG
+# =========================
+FAIL_THRESHOLD = 3   # gagal berapa kali → open circuit
+RECOVERY_TIME = 10  # detik sebelum retry lagi
+
+
+# =========================
 # TIMEOUT (dalam detik)
 # =========================
-# ... (SEMUA KOMEN KAMU TETAP)
 TIMEOUT = 5  #(recommended: normal range
 
 
@@ -196,64 +220,72 @@ def get_limit_redis():
 
 
 # =========================
-# AVAILABILITY CHECK
+# 🔥 ADVANCED HEALTH CHECK (LATENCY + CIRCUIT BREAKER)
 # =========================
-def is_cache_redis_available():
+def check_redis_health(name, client_getter, key):
     try:
-        return get_cache_redis() is not None
-    except Exception as e:
-        print(f"[REDIS CACHE CHECK ERROR] {e}")
-        traceback.print_exc()
-        return False
+        meta = redis_health_meta[key]
 
+        # =========================
+        # CIRCUIT OPEN → SKIP
+        # =========================
+        if meta["circuit_open"]:
+            now = time.time()
 
-def is_limit_redis_available():
-    try:
-        return get_limit_redis() is not None
+            if meta["last_check"] and (now - meta["last_check"] < RECOVERY_TIME):
+                print(f"[REDIS {name}] Circuit OPEN → skip")
+                redis_health_status[key] = False
+                return
+
+            print(f"[REDIS {name}] Circuit HALF-OPEN → retry")
+
+        start = time.time()
+
+        client = client_getter()
+
+        if client is None:
+            raise Exception("Client is None")
+
+        client.ping()
+
+        latency = (time.time() - start) * 1000
+
+        # SUCCESS
+        redis_health_status[key] = True
+        meta["latency"] = round(latency, 2)
+        meta["last_check"] = int(time.time())
+        meta["fail_count"] = 0
+        meta["circuit_open"] = False
+
+        print(f"[REDIS {name}] UP ({meta['latency']} ms)")
+
     except Exception as e:
-        print(f"[REDIS LIMIT CHECK ERROR] {e}")
+        print(f"[REDIS {name} ERROR] {e}")
         traceback.print_exc()
-        return False
+
+        meta = redis_health_meta[key]
+
+        redis_health_status[key] = False
+        meta["fail_count"] += 1
+        meta["last_check"] = int(time.time())
+
+        if meta["fail_count"] >= FAIL_THRESHOLD:
+            meta["circuit_open"] = True
+            print(f"[REDIS {name}] Circuit OPEN (fail={meta['fail_count']})")
 
 
 # =========================
 # 🔥 BACKGROUND HEALTH CHECK
 # =========================
-HEALTH_CHECK_INTERVAL = 10  # detik
-
-"""
-INTERVAL:
-- 5s  → agresif (debug)
-- 10s → recommended
-- 30s → ringan
-"""
-
-def _check_and_update(name, client_getter, key):
-    try:
-        client = client_getter()
-
-        if client is None:
-            status = False
-        else:
-            status = is_alive(client)
-
-        # hanya print jika status berubah
-        if redis_health_status[key] != status:
-            redis_health_status[key] = status
-            print(f"[REDIS HEALTH] {name} → {'UP' if status else 'DOWN'}")
-
-    except Exception as e:
-        print(f"[REDIS HEALTH ERROR] {name}: {e}")
-        traceback.print_exc()
-
+HEALTH_CHECK_INTERVAL = 10
 
 def _health_loop():
     print("[REDIS HEALTH] Background thread started")
 
     while True:
         try:
-            _check_and_update("CACHE", get_cache_redis, "cache")
-            _check_and_update("LIMIT", get_limit_redis, "limit")
+            check_redis_health("CACHE", get_cache_redis, "cache")
+            check_redis_health("LIMIT", get_limit_redis, "limit")
 
         except Exception as e:
             print(f"[REDIS HEALTH CRITICAL] {e}")
@@ -276,3 +308,25 @@ def start_redis_health_check(global_redis=True):
     except Exception as e:
         print(f"[REDIS HEALTH ERROR] Failed to start: {e}")
         traceback.print_exc()
+
+
+# =========================
+# AVAILABILITY CHECK
+# =========================
+def is_cache_redis_available():
+    try:
+        return get_cache_redis() is not None
+    except Exception as e:
+        print(f"[REDIS CACHE CHECK ERROR] {e}")
+        traceback.print_exc()
+        return False
+
+
+def is_limit_redis_available():
+    try:
+        return get_limit_redis() is not None
+    
+    except Exception as e:
+        print(f"[REDIS LIMIT CHECK ERROR] {e}")
+        traceback.print_exc()
+        return False
