@@ -37,8 +37,10 @@ def is_valid_nonce(value: str) -> bool:
     """Validasi format nonce sebelum digunakan."""
     if not value or not isinstance(value, str):
         return False
+    
     if not 22 <= len(value) <= 86:
         return False
+    
     return bool(_NONCE_PATTERN.match(value))
 
 

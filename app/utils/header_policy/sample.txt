@@ -1,0 +1,3 @@
+untuk apa sebenarnya:
+1. Referrer-Policy, referer yang seperti apa dan untuk apa gunanya dalam pemebuatan web
+2. bagaimana cara menggunakan cache-busting hash di nama file
