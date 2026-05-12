@@ -7,7 +7,7 @@ def create_app():
     core = Flask(__name__, static_folder='static', template_folder='templates')
 
     try: 
-        # register extension
+        # register app extension
         # ===================
         from app.extension import register_extension
         register_extension(core)
@@ -16,12 +16,12 @@ def create_app():
         # ===================
         # sample
 
-        # register utils
+        # register app utils
         # ===================
         from app.utils import register_utils
         register_utils(core)
 
-        # register routes
+        # register app routes
         # ===================
         from app.routes import register_routes
         register_routes(core)
