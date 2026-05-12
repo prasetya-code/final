@@ -1,249 +1,174 @@
-""" MESTI PERLU DI UBAH LAGI BENTUK FILENYA """
-
-import os
-
-# CSP Keywords — hindari pengulangan string literal
-SELF       = "'self'"
-NONE       = "'none'"
-UNSAFE_EVAL = "'unsafe-eval'"  # ⚠ Hanya untuk development — hapus di production
-
-
-def csp_policy(nonce=None, mode="web"):
+def build_csp(response):
     """
-    Membangun string Content-Security-Policy sesuai mode.
+    Menerapkan header Content-Security-Policy (CSP).
+    Whitelist sumber konten yang boleh dimuat browser — lapisan utama pertahanan XSS.
 
-    mode:
-        web -> website normal (default)
-        spa -> frontend SPA dengan endpoint API eksternal
-        api -> API backend, CSP tidak diterapkan
+    Setiap directive berbentuk list/array agar mudah ditambah atau dihapus per item.
+    Tambahkan domain eksternal langsung ke array directive yang relevan.
     """
 
-    # script-src ➡️ Sumber JS yang boleh dieksekusi browser.
-    # → 'self'          : hanya skrip dari origin sendiri
-    # → 'unsafe-eval'   : izinkan eval() / new Function() — dibutuhkan beberapa framework (pilihan kami, dev only)
-    # → 'nonce-<token>' : izinkan inline script dengan nonce yang cocok
-    # → 'strict-dynamic': percayai script yang di-inject oleh script tepercaya (nonce-based)
-    # → 'unsafe-inline' : izinkan semua inline script — JANGAN dipakai
+    # =========================================================
+    # FETCH DIRECTIVES
+    # Mengontrol dari mana browser boleh memuat resource.
+    # Urutan prioritas: directive spesifik > default-src.
+    #
+    # Nilai umum yang bisa ditambahkan ke array:
+    # → 'self'              : hanya origin sendiri (protokol + domain + port sama)
+    # → 'none'              : blokir semua
+    # → 'unsafe-inline'     : izinkan inline script/style — HINDARI
+    # → 'unsafe-eval'       : izinkan eval() — HINDARI jika bisa
+    # → 'nonce-<token>'     : izinkan elemen dengan nonce spesifik
+    # → 'strict-dynamic'    : percayai script yang sudah diizinkan nonce/hash
+    # → 'wasm-unsafe-eval'  : izinkan WebAssembly
+    # → data:               : izinkan data URI base64
+    # → blob:               : izinkan blob URL
+    # → https:              : izinkan semua HTTPS
+    # → https://domain.com  : izinkan domain spesifik
+    # → wss://domain.com    : izinkan WebSocket ke domain spesifik
+    # =========================================================
 
-    # ⚠ Hapus 'unsafe-eval' dan 'data:' sebelum naik ke production.
-    script_src = [
-        SELF,
-        UNSAFE_EVAL,        # dibutuhkan React dev / beberapa bundler
-        "data:",            # dibutuhkan @vitejs/plugin-legacy
-        "https://code.iconify.design",
-        "https://unpkg.com",
-        "https://cdnjs.cloudflare.com",
+    # default-src — fallback untuk semua directive fetch yang tidak didefinisikan
+    DEFAULT_SRC = [
+        "'self'",
     ]
 
-    # style-src ➡️ Sumber CSS yang boleh dimuat browser.
-    # → 'self'          : hanya stylesheet dari origin sendiri
-    # → 'unsafe-inline' : izinkan inline <style> dan atribut style — hindari jika bisa
-    # → 'nonce-<token>' : izinkan inline style dengan nonce yang cocok
-    style_src = [
-        SELF,
-        "https://fonts.googleapis.com",
+    # script-src — sumber JS yang boleh dieksekusi
+    # ⚠ Jangan tambahkan 'unsafe-inline' — ini membatalkan proteksi XSS.
+    SCRIPT_SRC = [
+        "'self'",
     ]
 
-    # font-src: 'self' | 'none' | 'data:' | <url>
-    # Sumber file font yang boleh diunduh browser.
-    font_src = [
-        SELF,
-        "https://fonts.gstatic.com",
+    # style-src — sumber CSS yang boleh diterapkan
+    # ⚠ Framework CSS modern kadang butuh 'unsafe-inline' —
+    #   pertimbangkan 'nonce-<token>' sebagai alternatif yang lebih aman.
+    STYLE_SRC = [
+        "'self'",
+        # "'unsafe-inline'",          # aktifkan jika pakai Tailwind CDN / inline style
+        # "https://fonts.googleapis.com",  # aktifkan jika pakai Google Fonts
     ]
 
-    # connect-src: 'self' | 'none' | <url>
-    # Sumber yang boleh dihubungi via fetch, XHR, WebSocket, EventSource.
-    connect_src = [
-        SELF,
-        "https://api.iconify.design",
-        "https://api.simplesvg.com",
-        "https://api.unisvg.com",
-        "https://assets.lottiefiles.com",
-        "https://lottie.host",
+    # img-src — sumber gambar (<img>, background-image CSS, favicon)
+    IMG_SRC = [
+        "'self'",
+        "data:",                       # base64 inline image / placeholder
+        # "blob:",                     # aktifkan jika ada preview upload
+        # "https://cdn.domain.com",    # aktifkan jika gambar dari CDN eksternal
     ]
 
-    # img-src: 'self' | 'none' | 'data:' | 'blob:' | <url>
-    # Sumber gambar yang boleh dimuat browser.
-    # → data: : izinkan gambar base64 inline
-    # → blob: : izinkan gambar dari Blob URL (canvas export, file upload preview)
-    img_src = [
-        SELF,
-        "data:",
-        "https://assets.lottiefiles.com",
-        "https://lottie.host",
+    # font-src — sumber file font (@font-face)
+    FONT_SRC = [
+        "'self'",
+        # "https://fonts.gstatic.com", # aktifkan jika pakai Google Fonts
     ]
 
-    # frame-src: 'self' | 'none' | <url>
-    # Sumber yang boleh dimuat di dalam <iframe> oleh halaman ini.
-    # Berbeda dengan frame-ancestors (yang mengontrol siapa yang boleh embed KITA).
-    # → 'none' : halaman ini tidak memuat iframe dari manapun (pilihan kami)
-    frame_src = [NONE]
+    # connect-src — sumber untuk koneksi JS (fetch, XHR, WebSocket, EventSource)
+    CONNECT_SRC = [
+        "'self'",
+        # "https://api.domain.com",    # aktifkan jika ada API eksternal
+        # "wss://ws.domain.com",       # aktifkan jika ada WebSocket eksternal
+    ]
 
-    # child-src: 'self' | 'none' | <url>
-    # Fallback untuk frame-src dan worker-src di browser lama (sebelum CSP Level 3).
-    # Browser modern mengabaikan ini jika frame-src / worker-src sudah ada.
-    child_src = [NONE]
+    # media-src — sumber untuk <audio> dan <video>
+    MEDIA_SRC = [
+        "'none'",                      # tidak ada kebutuhan media — blokir semua
+        # "'self'",                    # aktifkan jika ada audio/video dari server sendiri
+    ]
 
-    # script-src-attr: 'self' | 'none' | 'unsafe-inline' | 'nonce-<token>'
-    # Kontrol khusus untuk inline event handler (onclick=, onload=, dsb).
-    # Terpisah dari script-src agar bisa diblokir lebih ketat.
-    # → 'none' : blokir semua inline event handler atribut (pilihan kami)
-    script_src_attr = [NONE]
+    # worker-src — sumber untuk Web Worker, Service Worker, SharedWorker
+    WORKER_SRC = [
+        "'self'",
+        # "blob:",                     # aktifkan jika pakai bundler (Webpack, Vite)
+    ]
 
-    # style-src-attr: 'self' | 'none' | 'unsafe-inline'
-    # Kontrol khusus untuk atribut style="..." inline pada elemen HTML.
-    # → 'none' : blokir semua inline style atribut (pilihan kami)
-    # ⚠ Banyak library JS (tooltip, animasi) menyuntikkan style atribut secara otomatis.
-    #   Jika ada elemen yang rusak tampilannya, pertimbangkan 'unsafe-inline' di sini saja.
-    style_src_attr = [NONE]
+    # child-src — sumber untuk <frame>, <iframe>, dan worker
+    #             (fallback sebelum worker-src / frame-src didefinisikan)
+    CHILD_SRC = [
+        "'none'",                      # blokir semua child context
+    ]
 
-    # prefetch-src: 'self' | 'none' | <url>
-    # Sumber yang boleh di-prefetch atau di-preload via <link rel="prefetch/preload">.
-    # → 'self' : hanya resource dari origin sendiri yang boleh di-prefetch (pilihan kami)
-    # ⚠ Directive ini masih dalam draft — tidak semua browser mendukung.
-    prefetch_src = [SELF]
+    # manifest-src — sumber untuk file Web App Manifest (manifest.json)
+    MANIFEST_SRC = [
+        "'self'",
+    ]
 
-    # Nonce — token acak per-request untuk mengizinkan inline script/style tertentu
-    # → format : 'nonce-<base64_random_token>'
-    # ⚠ Nonce wajib berbeda setiap request. Jangan hardcode.
-    if nonce:
-        script_src.append(f"'nonce-{nonce}'")
-        style_src.append(f"'nonce-{nonce}'")
+    # =========================================================
+    # DOCUMENT DIRECTIVES
+    # Mengontrol properti dokumen itu sendiri, bukan resource-nya.
+    # =========================================================
 
-    # Mode SPA — tambahkan endpoint API eksternal ke connect-src
-    if mode == "spa":
-        connect_src.append("https://api.yourdomain.com")
+    # base-uri — nilai yang diizinkan untuk tag <base href="">
+    # ⚠ Tanpa ini, penyerang bisa inject <base href="https://evil.com">
+    #   sehingga semua relative URL mengarah ke domain mereka.
+    BASE_URI = [
+        "'self'",
+        # "'none'",                    # alternatif: larang tag <base> sama sekali
+    ]
 
-    return (
-        # default-src: 'self' | 'none' | <url>
-        # Fallback untuk semua directive yang tidak disebutkan secara eksplisit.
-        f"default-src {NONE}; "
+    # =========================================================
+    # NAVIGATION DIRECTIVES
+    # Mengontrol ke mana browser boleh dinavigasikan.
+    # =========================================================
 
-        # upgrade-insecure-requests — paksa semua resource HTTP ke HTTPS otomatis
-        "upgrade-insecure-requests; "
+    # form-action — URL yang diizinkan sebagai target <form action="">
+    # ⚠ Tanpa ini, form bisa di-hijack untuk submit ke domain penyerang.
+    FORM_ACTION = [
+        "'self'",
+        # "https://api.domain.com",    # aktifkan jika form submit ke API eksternal
+    ]
 
-        # block-all-mixed-content — blokir resource HTTP saat halaman dibuka via HTTPS
-        # ⚠ Sudah dicakup upgrade-insecure-requests, namun tetap disertakan
-        #   sebagai lapisan kedua untuk browser lama yang belum mendukung directive di atas.
-        "block-all-mixed-content; "
+    # frame-ancestors — siapa yang boleh embed halaman ini via <iframe>, <frame>, <object>
+    # ⚠ Directive ini MENGGANTIKAN X-Frame-Options di browser modern.
+    FRAME_ANCESTORS = [
+        "'none'",                      # tidak boleh di-embed siapapun
+        # "'self'",                    # alternatif: izinkan embed oleh origin sendiri
+        # "https://dashboard.domain.com", # alternatif: izinkan domain spesifik
+    ]
 
-        f"script-src {' '.join(script_src)}; "
+    # =========================================================
+    # OTHER DIRECTIVES
+    # =========================================================
 
-        # script-src-elem: kontrol khusus tag <script src="..."> dan <script>inline</script>
-        f"script-src-elem {' '.join(script_src)}; "
+    # object-src — sumber untuk <object>, <embed>, <applet> (plugin lama: Flash, Java)
+    # ⚠ Plugin lama adalah vektor serangan besar — selalu set ke 'none'.
+    OBJECT_SRC = [
+        "'none'",
+    ]
 
-        # script-src-attr: kontrol khusus inline event handler (onclick=, onload=, dsb)
-        f"script-src-attr {' '.join(script_src_attr)}; "
+    # upgrade-insecure-requests — paksa semua request HTTP menjadi HTTPS otomatis
+    # ⚠ Berbeda dengan HSTS: directive ini hanya berlaku dalam scope halaman,
+    #   bukan di level browser secara keseluruhan.
+    UPGRADE_INSECURE = True
 
-        f"style-src {' '.join(style_src)}; "
+    # =========================================================
+    # BUILD & APPLY
+    # Susun semua directive dari array menjadi satu string header CSP.
+    # =========================================================
 
-        # style-src-elem: kontrol khusus tag <style> dan <link rel="stylesheet">
-        f"style-src-elem {' '.join(style_src)}; "
+    directives = {
+        "default-src":     DEFAULT_SRC,
+        "script-src":      SCRIPT_SRC,
+        "style-src":       STYLE_SRC,
+        "img-src":         IMG_SRC,
+        "font-src":        FONT_SRC,
+        "connect-src":     CONNECT_SRC,
+        "media-src":       MEDIA_SRC,
+        "worker-src":      WORKER_SRC,
+        "child-src":       CHILD_SRC,
+        "manifest-src":    MANIFEST_SRC,
+        "base-uri":        BASE_URI,
+        "form-action":     FORM_ACTION,
+        "frame-ancestors": FRAME_ANCESTORS,
+        "object-src":      OBJECT_SRC,
+    }
 
-        # style-src-attr: kontrol khusus atribut style="..." inline
-        f"style-src-attr {' '.join(style_src_attr)}; "
-
-        f"font-src {' '.join(font_src)}; "
-        f"img-src {' '.join(img_src)}; "
-        f"connect-src {' '.join(connect_src)}; "
-        f"frame-src {' '.join(frame_src)}; "
-        f"child-src {' '.join(child_src)}; "
-        f"prefetch-src {' '.join(prefetch_src)}; "
-
-        # object-src: 'none' — blokir plugin lama (Flash, Java, Silverlight)
-        f"object-src {NONE}; "
-
-        # frame-ancestors: 'none' | 'self' | <url>
-        # Kontrol siapa yang boleh meng-embed halaman ini ke dalam iframe.
-        # → 'none' : tidak ada yang boleh embed halaman ini (pilihan kami)
-        # → 'self' : hanya same-origin yang boleh embed
-        f"frame-ancestors {NONE}; "
-
-        # base-uri: 'self' | 'none'
-        # Batasi nilai tag <base href="...">.
-        # → 'none' : tolak semua tag <base> — cegah base tag injection
-        f"base-uri {NONE}; "
-
-        # form-action: 'self' | 'none' | <url>
-        # Batasi tujuan submit <form>.
-        # → 'self' : form hanya boleh submit ke origin sendiri (pilihan kami)
-        f"form-action {SELF}; "
-
-        # manifest-src: 'self' — hanya PWA manifest dari origin sendiri
-        f"manifest-src {SELF}; "
-
-        # worker-src: 'self' | 'none' | 'blob:' | <url>
-        # Sumber untuk Web Worker, Service Worker, dan Shared Worker.
-        # → 'self' : hanya worker dari origin sendiri (pilihan kami)
-        # → 'blob:': dibutuhkan jika worker dibuat dari Blob URL
-        f"worker-src {SELF}; "
-
-        # media-src: 'self' | 'none' | <url>
-        # Sumber untuk elemen <audio> dan <video>.
-        f"media-src {SELF}; "
-
-        # require-trusted-types-for 'script' — cegah DOM XSS via Trusted Types API
-        # Semua assignment ke sink berbahaya (innerHTML, eval, dsb) wajib melalui Trusted Types.
-        "require-trusted-types-for 'script'; "
-
-        # trusted-types: default | <nama-policy> | 'none' | 'allow-duplicates'
-        # → default : izinkan hanya policy bernama "default"
-        # → 'none'  : blokir semua Trusted Types policy (sangat ketat)
-        "trusted-types default; "
-
-        # report-uri — endpoint penerima laporan pelanggaran CSP (format lama, masih luas didukung)
-        "report-uri /csp-report; "
-
-        # report-to — endpoint penerima laporan CSP (format baru, pakai Reporting API)
-        # Merujuk ke group yang didefinisikan di header Report-To.
-        "report-to csp-endpoint; "
+    policy = "; ".join(
+        f"{directive} {' '.join(sources)}"
+        for directive, sources in directives.items()
     )
 
+    if UPGRADE_INSECURE:
+        policy += "; upgrade-insecure-requests"
 
-def csp_headers(response, nonce=None, mode="web"):
-    """
-    Menerapkan header CSP ke response.
-
-    CSP_REPORT_ONLY=true → pakai Content-Security-Policy-Report-Only (debugging, tidak memblokir)
-    CSP_REPORT_ONLY=false → pakai Content-Security-Policy (enforced, memblokir pelanggaran)
-    """
-
-    # Mode API tidak membutuhkan CSP — browser tidak merender halaman dari API
-    if mode == "api":
-        return response
-
-    csp = csp_policy(nonce, mode)
-
-    if os.getenv("CSP_REPORT_ONLY", "false").lower() == "true":
-        # Report-Only: laporkan pelanggaran tanpa memblokir — gunakan saat development / rollout bertahap
-        response.headers["Content-Security-Policy-Report-Only"] = csp
-    else:
-        # Enforced: blokir semua pelanggaran secara aktif
-        response.headers["Content-Security-Policy"] = csp
-
-    return response
-
-
-def csp_report(response, mode="web"):
-    """
-    Menerapkan header Report-To untuk Reporting API browser modern.
-    Digunakan bersama directive report-to di CSP.
-
-    Report-To: {"group": "<nama>", "max_age": <detik>, "endpoints": [{"url": "<url>"}]}
-    → group    : nama grup yang dirujuk oleh directive report-to di CSP
-    → max_age  : berapa lama browser menyimpan konfigurasi ini (detik)
-    → endpoints: daftar URL tujuan pengiriman laporan
-    """
-
-    if mode == "api":
-        return response
-
-    response.headers["Report-To"] = (
-        "{"
-        '"group":"csp-endpoint",'
-        '"max_age":10886400,'
-        '"endpoints":[{"url":"/csp-report"}]'
-        "}"
-    )
+    response.headers["Content-Security-Policy"] = policy
 
     return response
